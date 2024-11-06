@@ -18,6 +18,7 @@ type Options struct {
 	URLScheme    URLScheme    // Custom url scheme, can be used to modify the request urls for the client
 	Cookie       *http.Cookie // http.Cookie options, uses Path, Domain, MaxAge, HttpOnly, & Secure
 	SessionStore SessionStore
+	Service      string // Service to use for the CAS client
 }
 
 // Client implements the main protocol
@@ -31,6 +32,7 @@ type Client struct {
 	sendService bool
 
 	stValidator *ServiceTicketValidator
+	service     string
 }
 
 // NewClient creates a Client with the provided Options.
@@ -87,6 +89,7 @@ func NewClient(options *Options) *Client {
 		sessions:    sessions,
 		sendService: options.SendService,
 		stValidator: NewServiceTicketValidator(client, options.URL),
+		service:     options.Service,
 	}
 }
 
@@ -126,21 +129,14 @@ func requestURL(r *http.Request) (*url.URL, error) {
 }
 
 // LoginUrlForRequest determines the CAS login URL for the http.Request.
-func (c *Client) LoginUrlForRequest(r *http.Request) (string, error) {
+func (c *Client) LoginUrlForRequest() (string, error) {
 	u, err := c.urlScheme.Login()
 	if err != nil {
 		return "", err
 	}
-
-	service, err := requestURL(r)
-	if err != nil {
-		return "", err
-	}
-
 	q := u.Query()
-	q.Add("service", sanitisedURLString(service))
+	q.Add("service", c.service)
 	u.RawQuery = q.Encode()
-
 	return u.String(), nil
 }
 
