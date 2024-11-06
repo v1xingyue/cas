@@ -198,7 +198,7 @@ func (c *Client) RedirectToLogout(w http.ResponseWriter, r *http.Request) {
 
 // RedirectToLogin replies to the request with a redirect URL to authenticate with CAS.
 func (c *Client) RedirectToLogin(w http.ResponseWriter, r *http.Request) {
-	u, err := c.LoginUrlForRequest(r)
+	u, err := c.LoginUrlForRequest()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
